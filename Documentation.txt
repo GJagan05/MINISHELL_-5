@@ -1,0 +1,275 @@
+DOCUMENTATION :
+
+NAME     :G.jagan
+BATCH ID :25021H - 431
+
+PROJECT TITLE :
+
+                                I M P L E M E N T A T I O N   O F   M I N I S H E L L
+
+
+OBJECTIVE :
+__________
+1.To design and implement a custom Linux shell that:
+2.Executes internal commands
+3.Executes external commands
+4.Supports pipes
+5.Handles signals (Ctrl+C, Ctrl+Z)
+6.Manages background processes
+7.Maintains job control using linked list
+8.Demonstrates Linux internals concepts
+
+
+
+CONCEPTS(Linux Internals):
+__________________________
+->This project demonstrates the following core Linux concepts:
+
+Concept	                            Used For
+________                          _______________
+fork()	                            Create new process
+execvp()	                        Execute external commands
+wait() / waitpid()	                Wait for child process
+WNOHANG	                            Non-blocking child check
+WUNTRACED	                        Detect stopped process
+signal()	                        Handle signals
+kill()	                            Send signal to process
+pipe()	                            Inter-process communication
+dup2()	                            Redirect file descriptors
+getenv()	                        Environment variables
+Linked List	                        Job control storage
+
+
+
+PROJECT ARCHITECTURE :
+____________________
+*File Structure
+
+MINISHELL│
+├── main.c
+├── scan_input.c
+├── command.c
+├── sll.c
+├── header.h
+└── external_cmd.txt 
+
+
+
+WORKING FLOW :
+_____________
+Step 1: Start Shell
+        Display prompt minishell$
+        Wait for user input
+
+Step 2: Read Input
+        User enters command
+        Command is parsed
+
+Step 3: Identify Command Type
+        If Built-in → execute internally
+        If External → fork() + execvp()
+        If Invalid → print error
+
+Step 4: Handle Signals
+        Ctrl+C → terminate foreground process
+        Ctrl+Z → stop process & store in linked list
+        SIGCHLD → clean finished background processes
+
+
+INTERNAL COMMANDS :
+___________________
+    Command	              Description
+***************     **********************
+    cd	                  Change directory
+    pwd	                  Print working directory     
+    exit	              Exit shell
+    echo	              Print text
+    echo $$               Print shell PID
+    echo $?	              Print last exit status
+    PS1=	              Change prompt
+    jobs	              Show stopped jobs
+    fg	                  Bring job to foreground
+    bg	                  Resume job in background
+
+
+
+EXTERNAL COMMANDS :
+___________________
+External commands use:
+
+            fork();
+            execvp();
+            waitpid();
+
+    Example:
+
+        ls
+        date
+        whoami
+        sleep 10
+
+
+PIPE IMPLEMENTATION :
+_____________________
+SUPPORTS:
+
+ls | wc
+cat file.txt | grep hello | wc
+
+USES:
+
+    pipe()
+
+    dup2()
+
+    Multiple fork()
+
+    Implements N-pipe logic.
+
+
+
+SIGNAL HANDLING :
+_________________
+Ctrl + C (SIGINT)
+
+--> Terminates foreground process
+
+--> Does NOT terminate shell
+
+
+Ctrl + Z (SIGTSTP)
+
+--> Stops process
+
+-->Inserts into linked list
+
+
+SIGCHLD
+
+--> Detects background process completion
+
+USES:
+
+--> waitpid(-1, &status, WNOHANG);
+
+
+
+JOB CONTROL (Linked List):
+_________________________
+STRUCTURE:
+
+typedef struct node
+{
+    pid_t pid;
+    char cmd[100];
+    struct node *link;
+} NODE;
+
+FUNCTIONS:
+
+        insert_at_first()
+
+        show_jobs()
+
+        delete_node()
+
+        Stores stopped processes.
+
+
+
+
+
+ERROR HANDLING :
+_________________
+Handled Errors:
+
+---> Command not found
+
+---> Invalid PS1 format
+
+---> Invalid directory
+
+---> Fork failure
+
+---> Exec failure
+
+---> File not found
+
+EX:
+
+wrongcmd
+→ Command not found
+
+
+
+COMPILATION :
+____________
+            gcc *.c -o minishell -Wall
+
+      RUN:
+
+            ./minishell
+
+
+
+
+SAMPLE EXECUTION :
+__________________
+    minishell$: pwd
+    /home/shameer/minishell
+
+    minishell$: ls
+    main.c command.c scan_input.c
+
+    minishell$: sleep 20
+    Ctrl+Z
+
+    minishell$: jobs
+    [1] Stopped sleep 20
+
+    minishell$: fg 1
+
+
+
+
+
+1️⃣4️⃣ ADVANTAGES :
+
+-->> Understand Linux process control
+
+-->> Hands-on with signals
+
+-->> Learn IPC (pipes)
+
+-->> Learn job control
+
+-->> Understand how bash works internally
+
+
+
+
+LIMITATIONS :
+_____________
+-->> No advanced parsing
+
+-->> No redirection support
+
+-->> No environment variable expansion (except basic)
+
+-->> No wildcard expansion
+
+
+
+ENHANCEMENTS :
+______________
+-->> Input/output redirection
+
+-->> Advanced variable handling
+
+-->> Command history
+
+-->> Tab completion
+
+-->> Background (&) execution
+
+-->> Full bash-like PS1 support
